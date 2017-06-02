@@ -1,11 +1,15 @@
 #   ____________________________________________________________________________
 #   vastrix                                                                ####
 
+    options(scipen = 999)
+    Sys.setlocale("LC_ALL", "C")
+
 
 #  Required Packages                                                       
 
-    library(dplyr)
-    library(tibble)
+    library(dplyr)      # data manipulation (filter, summarize, mutate)
+    library(tibble) 
+    library(lubridate)  # work with dates
 
 # 1. Cargar el data frame                                                           
 
@@ -32,5 +36,20 @@
                                                             no_transacciones_fisicas = sum(VSTRX_CLSS == 'PIN')
                                                         )
     
-# 4.   
+# 4. Resumen Mensual
     
+    Resumen_Mensual <- vastrix %>%  mutate(
+                                        MONTH = month(FCT_DT, label = T, abb = FALSE),
+                                        YEAR = year(FCT_DT)
+                                    ) %>%
+                                    group_by(YEAR, MONTH) %>%
+                                    summarise(
+                                        valor_total = sum(BILLD_AMNT),
+                                        valor_promedio = mean(BILLD_AMNT),
+                                        no_usuarios_unicos = n_distinct(AR_KEY),
+                                        no_transacciones_electronicas = sum(VSTRX_CLSS == 'EPIN'),
+                                        no_transacciones_fisicas = sum(VSTRX_CLSS == 'PIN')
+                                    )
+    
+
+            
