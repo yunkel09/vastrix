@@ -66,7 +66,7 @@
                                 no_transacciones = n(),
                                 valor_total = sum(billd_amnt))
                    
-    
+# 6. resumen mensual al que se le agregaran dos columnas    
     resumen_mg_plus <-      vastrix %>%
                             mutate(
                                 ano = year(fct_dt),
@@ -80,8 +80,6 @@
                             select(-ano, -mes) %>%
                             do(.[c(4,1:3)])
 
-                                    
-    
     # funcion para extraer la suma total por mes de las transacciones
     total_transact_fun <- function(mifecha){
                 trs <- sum(resumen_mg_plus[resumen_mg_plus$myfecha == mifecha, 'no_transacciones'])
@@ -102,7 +100,8 @@
     resumen_mg_plus$porcentaje_monto          <- numeric(length = length(resumen_mg_plus$no_transacciones))
    
    
-    # calculo de las columnas de porcentaje de transacciones y montos por mes.
+# 6. agregar columnas de porcentaje de transacciones y montos por mes
+    
     for(i in seq_along(resumen_mg_plus$myfecha)){
         for(j in seq_along(mymes))
             if(resumen_mg_plus$myfecha[i] == mymes[j]){
@@ -111,5 +110,8 @@
                 break()
             }
     }
+
+# 7. borrar df vastrix
     
+    rm(vastrix)
    
