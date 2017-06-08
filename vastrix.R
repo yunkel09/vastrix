@@ -38,8 +38,7 @@
                                 valor_promedio = mean(billd_amnt),
                                 no_usarios_unicos = n_distinct(ar_key),
                                 no_transacciones_electronicas = sum(vstrx_clss == 'EPIN'),
-                                no_transacciones_fisicas = sum(vstrx_clss == 'PIN')
-                            )
+                                no_transacciones_fisicas = sum(vstrx_clss == 'PIN'))
 
 # 4. resumen mensual
 
