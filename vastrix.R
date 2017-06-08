@@ -1,14 +1,14 @@
 #   ____________________________________________________________________________
-#   vastrix                                                                ####
+#   vastrix    -  William Chavarria                                         ####
 
-    options(scipen = 999)
-    Sys.setlocale("LC_ALL", "C")
+    options(scipen = 999)           # avoid scientific notation
+    Sys.setlocale("LC_ALL", "C")    
 
 
 #  Required Packages                                                       
 
     library(tidyverse)      # data manipulation (filter, summarize, mutate)
-    library(lubridate)      # function 'month'
+    library(lubridate)      # function 'month' and 'year'
     library(magrittr)       # compound assignment pipe operator: %<>%
     
 
@@ -24,11 +24,11 @@
     names(vastrix) %<>% tolower
 
  
-# # #2. determinar cantidad de registros
+# 2. determinar cantidad de registros
 
     n <- nrow(vastrix)
 
-# # # 3. resumen diario
+# 3. resumen diario
 
     resumen_diario  <-  vastrix %>%
                             group_by(fct_dt) %>%
@@ -41,7 +41,7 @@
                                 no_transacciones_fisicas = sum(vstrx_clss == 'PIN')
                             )
 
-# # 4. resumen mensual
+# 4. resumen mensual
 
     resumen_mensual <-  vastrix %>%
                             mutate(
@@ -55,7 +55,7 @@
                                 no_transacciones_electronicas = sum(vstrx_clss == 'EPIN'),
                                 no_transacciones_fisicas = sum(vstrx_clss == 'PIN'))
 
-# # 5. resumen_mensual_grupos
+# 5. resumen_mensual_grupos
      
     resumen_mg  <-  vastrix %>%
                             mutate(
@@ -101,9 +101,8 @@
     resumen_mg_plus$porcentaje_transacciones  <- numeric(length = length(resumen_mg_plus$no_transacciones))
     resumen_mg_plus$porcentaje_monto          <- numeric(length = length(resumen_mg_plus$no_transacciones))
    
-    i <- 1
-    j <- 1
-    # calculo de la columna de transacciones por mes
+   
+    # calculo de las columnas de porcentaje de transacciones y montos por mes.
     for(i in seq_along(resumen_mg_plus$myfecha)){
         for(j in seq_along(mymes))
             if(resumen_mg_plus$myfecha[i] == mymes[j]){
