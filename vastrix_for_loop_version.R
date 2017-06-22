@@ -1,11 +1,6 @@
 #   ____________________________________________________________________________
 #   vastrix    -  William Chavarria                                         ####
 
-
-#' Se utilizó dplyr version 0.7.0
-#' devtools::install_github('tidyverse/dplyr')
-
-
     options(scipen = 999)           # avoid scientific notation
     Sys.setlocale("LC_ALL", "C")    
 
@@ -23,11 +18,9 @@
     download.file(url = url_vastrix, destfile = 'vastrix.rda')
     load('vastrix.rda')
 
-    # cambiar nombre del objeto
     vastrix <- as_tibble(Trx_Vastrix)
     rm(Trx_Vastrix)
 
-    # cambiar a minuscula los nombres
     names(vastrix) %<>% tolower
 
  
@@ -63,7 +56,7 @@
 
 # 5. resumen_mensual_grupos
      
-    resumen_mg      <-  vastrix %>%
+    resumen_mg  <-  vastrix %>%
                             mutate(
                                 ano = year(fct_dt),
                                 mes = month(fct_dt, label = T, abb = FALSE)) %>%
@@ -72,40 +65,52 @@
                                 no_transacciones = n(),
                                 valor_total = sum(billd_amnt))
                    
-# 6. agregar a resumen mensual dos columnas: porcentaje de transaccioens y porcentaje de monto: rmg(Resumen Mensual Grupos)
-# se cambia el nombre del df para hacerlo mas corto
-    
-    rmg         <-  vastrix %>%
-                        mutate(
-                            ano = year(fct_dt),
-                            mes = month(fct_dt, label = T, abb = FALSE)) %>%
-                        group_by(ano, mes, vstrx_grp) %>%
-                        summarise(
-                            no_transacciones = n(),
-                            valor_total = sum(billd_amnt)) %>%
-                        ungroup %>%
-                        mutate(fecha = paste(mes, ano, sep = '_')) %>%
-                        select(-ano, -mes) %>%
-                        do(.[c(4,1:3)])
+# 6. resumen mensual al que se le agregaran dos columnas    
+    resumen_mg_plus <-      vastrix %>%
+                            mutate(
+                                ano = year(fct_dt),
+                                mes = month(fct_dt, label = T, abb = FALSE)) %>%
+                            group_by(ano, mes, vstrx_grp) %>%
+                            summarise(
+                                no_transacciones = n(),
+                                valor_total = sum(billd_amnt)) %>%
+                            ungroup %>%
+                            mutate(myfecha = paste(mes, ano, sep = '_')) %>%
+                            select(-ano, -mes) %>%
+                            do(.[c(4,1:3)])
 
-    
-    # definir funcion para calcular total en función del argumento 'mes'
-    total_mes <- function(mi_mes){
-        med <- c('no_transacciones', 'valor_total')
-        sapply(med, function(x) sum(rmg[rmg$fecha == mi_mes, x]))
+    # funcion para extraer la suma total por mes de las transacciones
+    total_transact_fun <- function(mifecha){
+                trs <- sum(resumen_mg_plus[resumen_mg_plus$myfecha == mifecha, 'no_transacciones'])
+                return(trs)
     }
+    
+    # funcion para extraer la suma total por mes de los montos
+    total_monto_fun <- function(mifecha){
+                mto <- sum(resumen_mg_plus[resumen_mg_plus$myfecha == mifecha, 'valor_total'])
+                return(mto)
+    }
+    
+    # vector de comparacion
+    mymes <- as.character(unique(resumen_mg_plus$myfecha))
+
+    # incializacion de vectores para eficiencia del bucle
+    resumen_mg_plus$porcentaje_transacciones  <- numeric(length = length(resumen_mg_plus$no_transacciones))
+    resumen_mg_plus$porcentaje_monto          <- numeric(length = length(resumen_mg_plus$no_transacciones))
    
-    # calcular df de totales por mes
-    foo         <- as.data.frame(t(sapply(rmg$fecha, function(x) total_mes(x))), row.names = FALSE)
+   
+# 6. agregar columnas de porcentaje de transacciones y montos por mes
     
-    
-    # calcular porcentajes
-    rmg                 <- cbind(rmg, rmg[3:4]/foo)
-    names(rmg)[5:6]     <- c('porcentaje_transacciones', 'porcentaje_monto_total')
+    for(i in seq_along(resumen_mg_plus$myfecha)){
+        for(j in seq_along(mymes))
+            if(resumen_mg_plus$myfecha[i] == mymes[j]){
+                resumen_mg_plus$porcentaje_transacciones[i] = resumen_mg_plus$no_transacciones[i]/total_transact_fun(resumen_mg_plus$myfecha[i])
+                resumen_mg_plus$porcentaje_monto[i] = resumen_mg_plus$valor_total[i]/total_monto_fun(resumen_mg_plus$myfecha[i])
+                break()
+            }
+    }
 
-
-    
-    # 7. borrar df vastrix
+# 7. borrar df vastrix
     
     rm(vastrix)
    
